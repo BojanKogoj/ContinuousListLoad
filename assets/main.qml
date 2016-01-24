@@ -18,12 +18,13 @@ import bb.cascades 1.3
 import bb.data 1.0
 
 Page {
+    property int offset: 0
     Container {
 
         ListView {
             id: listView
             property bool loadingElementVisible: false
-            
+
             dataModel: ArrayDataModel {
                 id: myDataModel
             }
@@ -46,7 +47,7 @@ Page {
                             }
                             horizontalAlignment: HorizontalAlignment.Fill
                             verticalAlignment: VerticalAlignment.Fill
-                            
+
                             ActivityIndicator {
                                 id: activity
                                 preferredHeight: ui.du(4)
@@ -64,10 +65,22 @@ Page {
             attachedObjects: [
                 ListScrollStateHandler {
                     id: listStateHandler
+                    property int position
                     onAtEndChanged: {
-                        if (atEnd && ! listView.loadingElementVisible) {
-                            dataSource.load();
-                            listView.toggleLoadingElement(true); // if display
+                        if (atEnd) {
+                            console.log("END OF LISTVIEW")
+                        }
+                    }
+
+                    onFirstVisibleItemChanged: {
+                        if (position < firstVisibleItem) {
+
+                            var size = myDataModel.size()
+                            var percent = firstVisibleItem / size * 100;
+
+                            if (50 < percent < 75) {
+                                dataSource.load();
+                            }
                         }
                     }
                 }
@@ -102,9 +115,9 @@ Page {
             id: dataSource
             property int currentPage: 0
             source: "http://adev.si/files/pages.php?page=" + (currentPage + 1)
-            
+
             onDataLoaded: {
-                currentPage ++; 
+                currentPage ++;
                 listView.toggleLoadingElement(false); // if display
                 myDataModel.append(data)
             }
